@@ -1,1 +1,78 @@
+# Incident Report Rules & Workflow
 
+This document defines the standardized process followed for triaging, investigating, and documenting every alert in this repository. It ensures each incident report is consistent, repeatable, and defensible.
+
+## 🔄 Workflow Overview
+
+```mermaid
+flowchart TD
+    A[Alert Triggered] --> B[Initial Triage]
+    B --> C[Extract IOCs]
+    C --> D[Enrich IOCs<br/>VirusTotal / IP2Location]
+    D --> E{Malicious<br/>Indicators<br/>Confirmed?}
+    E -->|Yes| F[Classify: True Positive]
+    E -->|No| G[Classify: False Positive]
+    F --> H[Map to MITRE ATT&CK]
+    H --> I[Determine Response Actions]
+    I --> J[Contain / Remediate]
+    J --> K[Document Recommendations]
+    G --> L[Document Rationale for Closure]
+    K --> M[Finalize Incident Report]
+    L --> M
+    M --> N[Report Published to Repository]
+```
+
+## 📋 Rule Set
+
+### Rule 1 — Every alert gets triaged before classification
+No alert is marked True Positive or False Positive without IOC enrichment (VirusTotal, IP reputation, or equivalent threat intel lookup). Assumptions without evidence are not acceptable.
+
+### Rule 2 — Severity is inherited from the source tool, not reassigned arbitrarily
+The severity listed in the report reflects what the SIEM/EDR assigned (e.g., Splunk, Sentinel, Defender). If an analyst disagrees with the tool's severity rating, that disagreement is documented in the **Analysis** section — the original severity is not silently changed.
+
+### Rule 3 — Every IOC must be enriched with at least one external source
+Minimum enrichment sources used in this repo:
+- **VirusTotal** — reputation and vendor detection count
+- **IP2Location / WhoIsMyIP** — geolocation, ASN, hosting provider context
+
+### Rule 4 — MITRE ATT&CK mapping is only applied to confirmed True Positives
+False Positives do not receive a technique/tactic mapping, since no adversary behavior was confirmed. Forcing a mapping onto a false positive misrepresents the finding.
+
+### Rule 5 — Every True Positive requires a documented Response Action
+At minimum: containment step taken (block IP, isolate host, revoke credential, etc.) and escalation path (if applicable).
+
+### Rule 6 — Every report ends with actionable Recommendations
+Recommendations must be specific (e.g., "patch libssh2 to >1.11.1") — not generic advice like "improve security posture."
+
+### Rule 7 — Reports follow the fixed 7-section structure
+1. Alert Summary
+2. Timeline of Events
+3. Indicators of Compromise (IOCs)
+4. Analysis
+5. MITRE ATT&CK Mapping
+6. Response Actions
+7. Recommendations
+
+## ✅ Validity Classification Criteria
+
+| Classification | Criteria |
+|-----------------|----------|
+| **True Positive** | Confirmed malicious indicator (vendor detections, known malicious infrastructure, matched exploit signature/CVE behavior) AND corroborating internal log evidence |
+| **False Positive** | No reputation-based evidence of malicious activity AND no suspicious internal behavior (e.g., no repeated failed logins, no anomalous outbound traffic) |
+| **Benign/Expected** | Activity confirmed as authorized (e.g., internal scanning tool, approved admin activity) |
+
+## 📁 Where This Fits in the Repo
+
+```
+IOC-Alert-Analysis-and-Incident-Reporting/
+├── README.md
+├── WORKFLOW.md          ← this file
+├── LICENSE
+└── Incident-Reports/
+    ├── IOC-Alert-01.md
+    ├── IOC-Alert-02.md
+    ├── IOC-Alert-03.md
+    └── IOC-Alert-04.md
+```
+
+Link to this file from your main `README.md` under the Methodology section so reviewers can see the rules governing every report at a glance.
